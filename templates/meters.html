@@ -1,0 +1,11 @@
+<!doctype html>
+<title>电表度数</title>
+
+<h1 style="color:green;font-size:50px">{{ now }}</h1>
+
+{% for m in meters %}
+<h1 style=font-size:70px>
+    <span style="color:red">{{ m['Tag'] }}</span>: 
+    <span style="color:blue">{{ m['电能-组合有功总-当前'][0] }}</span>
+</h1>
+{% endfor %}
