@@ -1,14 +1,10 @@
 # 1-Addr(非表号)  2-Tag  3..-可选自定义列
 s = '''
-000000004103 201  浩宁达DDZY22-Z
-000081497010 5F   先行DDZY2188
-000102866265 4F5F 正泰DDZY666
-000012068388 401  杰瑞DDSF49
-000000023557 402  宁光DDZY1122-Z
-000002005433 405  华立DDZY285
+010128318569 new DDZY719-Z
+001522454104 Err48 海兴DDZY208
 '''
 
-serial_port = '/dev/ttyUSB0'
+serial_port = '/dev/ttyUSB1'
 
 timeout_count = 10
 wait_for_read = 0.5

@@ -20,7 +20,6 @@ def read():
         v['Tag'] = get_meter_tag_by_id(k)
     
     now = datetime.now(tz).strftime("%Y-%m-%d %X")
-    print(now)
     
     return render_template('meters.html', 
                            meters=result.values(), 

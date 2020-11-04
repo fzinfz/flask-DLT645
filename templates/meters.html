@@ -1,11 +1,43 @@
 <!doctype html>
 <title>电表度数</title>
+<head>     
+   
+<style>
 
+div {
+  display: flex;
+  justify-content: center;
+  position: relative;
+} 
+    
+h1 {
+  margin: 15px;
+}
+
+button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 15px 50px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 22px;
+  position: absolute;
+  right: 0;    
+}     
+    
+</style>
+</head>
+
+<div>
 <h1 style="color:green;font-size:50px">{{ now }}</h1>
+<button onClick="window.location.reload();">最新度数</button>
+</div>
 
 {% for m in meters %}
 <h1 style=font-size:70px>
     <span style="color:red">{{ m['Tag'] }}</span>: 
-    <span style="color:blue">{{ m['电能-组合有功总-当前'][0] }}</span>
-</h1>
+    <span style="color:blue">{{ m['电能-组合有功总-当前'][0] }}度</span>
+    </h1>
 {% endfor %}
