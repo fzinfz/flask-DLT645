@@ -1,10 +1,10 @@
 # 1-Addr(非表号)  2-Tag  3..-可选自定义列
-s = '''
-010128318569 new DDZY719-Z
-001522454104 Err48 海兴DDZY208
+meter_list_str = '''
+000081497010 五楼   先行DDZY2188
+000102866265 四五楼 正泰DDZY666
 '''
 
-serial_port = '/dev/ttyUSB1'
+serial_port = '/dev/ttyUSB0'
 
 timeout_count = 10
 wait_for_read = 0.5

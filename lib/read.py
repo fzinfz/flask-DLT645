@@ -8,12 +8,6 @@ verbose=0
 
 chn=dlt645.Channel(port_id = serial_port, tmo_cnt = timeout_count, wait_for_read = wait_for_read)
 
-meters = [ re.findall('[^ ]+', line) for line in s.strip().splitlines() ]
-
-get_meter_tag_by_id = lambda id: [ m[1] for m in meters if m[0] == id ][0]
-get_meter_id_by_tag = lambda tag: [ m[0] for m in meters if m[1] == tag ][0]
-get_kWh_by_tag = lambda tag: float(result[get_meter_by_tag(tag)]['电能:本周期'][0])
-
 #                        （DI3~0, 整数位数，小数位数， 单位）
 
 D0 = {
@@ -77,78 +71,87 @@ D2 = {
    
 }
 
-
-D = {**D0, **D1, **D2}
-D = {**D0, **D1}
-D = D0
-
 def read_chn(chn, addr, cmd, verbose = 0):
     chn.encode(addr, 0x11, cmd)
     chn.xchg_data(verbose)
     return chn.rx_payload
 
 
-def get_data(chn, addr, item):
-    
-    d = D[item]    
-    payload = read_chn( chn, addr, [ int(x, 16) for x in d[0].split(' ')[::-1] ] )
-    
-    len_whole, len_decimal = d[1], d[2]
-    len_payload = int( (len_whole + len_decimal) / 2 )
-    
-    hex_str = ''.join([ "%02x" % x  for x in payload[::-1][:len_payload] ])
-    try:
-        value = int(hex_str) / pow(10, len_decimal)
-    except ValueError:
-        value = hex_str
+class Meter:
+    def __init__(self, level=1):
+        if level == 1: 
+            self.properties = D0
+        elif level == 2: 
+            self.properties = {**D0, **D1}
+        else: 
+            self.properties = {**D0, **D1, **D2}
+
+    def get_data(self, chn, addr, item):
+
+        d = self.properties[item]    
+        payload = read_chn( chn, addr, [ int(x, 16) for x in d[0].split(' ')[::-1] ] )
+
+        len_whole, len_decimal = d[1], d[2]
+        len_payload = int( (len_whole + len_decimal) / 2 )
+
+        hex_str = ''.join([ "%02x" % x  for x in payload[::-1][:len_payload] ])
+        try:
+            value = int(hex_str) / pow(10, len_decimal)
+        except ValueError:
+            value = hex_str
+
+        unit = d[3]
+        return value, unit
+
+
+    def read_meter(self, chn, addr):
         
-    unit = d[3]
-    return value, unit
+        D = self.properties
+        result = {}
 
+        for item in D:
+            result[item] = self.get_data(chn, addr, item)
 
-def read_meter(chn, addr):
-    
-    result = {}
-    
-    for item in D:
-        result[item] = get_data(chn, addr, item)
-  
-    if len(D) == 1: return result
-    
-    for k, v in D.items():
-        unit = v[3]
-        if unit == 'kW':
-            result[k] = "{:,.2f}".format( result[k][0] * 1000 ) , 'W'           
-        if unit == '#':
-            result[k] = "{0:0>12d}".format(int(result[k][0])), ''   
-        if unit == '分':            
-            result[k] = "{:,.2f}".format( result[k][0] / (60*24) / 365 ), '年'
+        if len(D) == 1: return result
 
-    result['功率-A相'] = "{:,.2f}".format( result['A相电压'][0] * result['A相电流'][0] ) , 'W'
-    result['电能:本周期'] = "{:,.2f}".format( 
-        result['电能-组合有功总-当前'][0] - result['电能-组合有功总-上结算日'][0] ) , 'kWh'
-    
-    try:
-        result['日期时间'] = str(result['日期'][0] + 20000000).split('.')[0] + ' ' + \
-             ':'.join( re.findall('..', "{0:0>6d}".format(int(result['时间'][0]*100))) ), ''
-        del result['日期']
-        del result['时间']
-    except:
-        pass
-    
-    return result
+        for k, v in D.items():
+            unit = v[3]
+            if unit == 'kW':
+                result[k] = "{:,.2f}".format( result[k][0] * 1000 ) , 'W'           
+            if unit == '#':
+                result[k] = "{0:0>12d}".format(int(result[k][0])), ''   
+            if unit == '分':            
+                result[k] = "{:,.2f}".format( result[k][0] / (60*24) / 365 ), '年'
 
+        result['功率-A相'] = "{:,.2f}".format( result['A相电压'][0] * result['A相电流'][0] ) , 'W'
+        result['电能:本周期'] = "{:,.2f}".format( 
+            result['电能-组合有功总-当前'][0] - result['电能-组合有功总-上结算日'][0] ) , 'kWh'
 
-def read_meters(chn, meters):
+        try:
+            result['日期时间'] = str(result['日期'][0] + 20000000).split('.')[0] + ' ' + \
+                 ':'.join( re.findall('..', "{0:0>6d}".format(int(result['时间'][0]*100))) ), ''
+            del result['日期']
+            del result['时间']
+        except:
+            pass
+
+        return result
+
+# s:meter_list_str defined in conf.py    
+get_meter_list = lambda s: [ re.findall('[^ ]+', line) for line in s.strip().splitlines() ]
+get_meter_tag_by_id = lambda id, meters: [ m[1] for m in meters if m[0] == id ][0]
+
+def read_meters(chn, meters, level=2):
     
     chn.open()
 
     result = {}
     for meter in meters:    
         print('\n', '='* 5, meter, '='* 5)
-        addr_human =  meter[0]    
+        addr_human = meter[0]    
         addr = [ int(s,16) for s in re.findall('..', addr_human) ]
-        rs = read_meter(chn, addr)
+        m = Meter(level)
+        rs = m.read_meter(chn, addr)
         pprint.pprint(rs)
         result[addr_human] = rs
 
