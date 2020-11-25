@@ -7,8 +7,7 @@ DLT645 批量抄表
 1. 编辑`lib/conf.py`：COM口、电表通信地址
 2.
 
-    export FLASK_DLT645_PORT=5010  # 可跳过，默认端口`5000`
-    ./run.sh
+    ./run.sh # 运行范例
 
 3. 打开浏览器，访问HTTP地址
     

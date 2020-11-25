@@ -13,16 +13,18 @@ from .lib.conf import *
 
 chn=dlt645.Channel(port_id = serial_port, tmo_cnt = timeout_count, wait_for_read = wait_for_read)
 
+env = os.environ['METER_ENV'] if 'METER_ENV' in os.environ else 'dev'
+        
 @app.route('/')
 @app.route('/meters/')
 def read():
-    
-    meters = get_meter_list(meter_list_str)
-    result = read_meters(chn, meters, level=1)
+
+    devices = Meters(env=env)
+    result = devices.read_meters(chn, level=1)
     
     for k,v in result.items():
         v['Addr'] = k, ''
-        v['Tag'] = get_meter_tag_by_id(k, meters)
+        v['Tag'] = devices.get_tag_by_id(k)
     
     now = datetime.now(tz).strftime("%Y-%m-%d %X")
     
