@@ -1,15 +1,9 @@
 import sys, re, os
 import pprint
 import pandas as pd
-
-from forked import dlt645
-from conf import *
-
-verbose=0
-
-chn=dlt645.Channel(port_id = serial_port, tmo_cnt = timeout_count, wait_for_read = wait_for_read)
-
 from collections import ChainMap
+
+from conf import *
 
 #                        （DI3~0, 整数位数，小数位数， 单位）
 properties_list = [
@@ -74,21 +68,21 @@ properties_list = [
     }
 ]
 
-def read_chn(chn, addr, cmd, verbose = 0):
-    chn.encode(addr, 0x11, cmd)
-    chn.xchg_data(verbose)
-    return chn.rx_payload
-
 
 class Meter:
-    def __init__(self, level=1):
+    def __init__(self, chn, addr, level=1):
+        self.chn = chn
+        self.addr = addr
         self.properties = dict(ChainMap(*properties_list[:level]))
-            
+        
 
-    def get_data(self, chn, addr, item):
+    def get_data(self, item, verbose = 0):
 
-        d = self.properties[item]    
-        payload = read_chn( chn, addr, [ int(x, 16) for x in d[0].split(' ')[::-1] ] )
+        d = self.properties[item]   
+        cmd = [ int(x, 16) for x in d[0].split(' ')[::-1] ]
+        self.chn.encode(self.addr, 0x11, cmd)
+        self.chn.xchg_data(verbose)        
+        payload = self.chn.rx_payload
 
         len_whole, len_decimal = d[1], d[2]
         len_payload = int( (len_whole + len_decimal) / 2 )
@@ -103,13 +97,13 @@ class Meter:
         return value, unit
 
 
-    def read_meter(self, chn, addr):
+    def read_meter(self):
         
         D = self.properties
         result = {}
 
         for item in D:
-            result[item] = self.get_data(chn, addr, item)
+            result[item] = self.get_data(item)
 
         if len(D) == 1: return result
 
@@ -146,9 +140,6 @@ class Meters:
     def get_df(self):
         return pd.DataFrame(self.devices, columns =['Addr','Tag','Model']).set_index('Addr')
     
-    def get_tag_by_id(self, id):
-        return [ m[1] for m in self.devices if m[0] == id ][0]
-
     def read_meters(self, chn, level=2):
         meters = self.devices
         chn.open()
@@ -158,8 +149,8 @@ class Meters:
             print('\n', '='* 5, meter, '='* 5)
             addr_human = meter[0]    
             addr = [ int(s,16) for s in re.findall('..', addr_human) ]
-            m = Meter(level)
-            rs = m.read_meter(chn, addr)
+            m = Meter(chn, addr, level)
+            rs = m.read_meter()
             pprint.pprint(rs)
             result[addr_human] = rs
 

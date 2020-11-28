@@ -18,7 +18,5 @@ meter_list_prod = '''
 000002005433 405  华立DDZY285
 '''
 
-serial_port = '/dev/ttyUSB0'
-
-timeout_count = 10
-wait_for_read = 0.5
+from forked import dlt645
+chn=dlt645.Channel(port_id = '/dev/ttyUSB0', tmo_cnt = 10, wait_for_read = 0.5)
