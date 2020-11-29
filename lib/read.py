@@ -3,8 +3,6 @@ import pprint
 import pandas as pd
 from collections import ChainMap
 
-from conf import *
-
 #                        （DI3~0, 整数位数，小数位数， 单位）
 properties_list = [
     {
@@ -13,8 +11,7 @@ properties_list = [
     {
         '功率-瞬时总有功':      ('02 03 00 00', 2, 4, 'kW'),  
     },
-    {
-    
+    {    
         '电能-组合有功总-上结算日':       ('00 00 00 01', 6, 2, 'kWh'),
 
         'A相电压':             ('02 01 01 00', 3, 1, 'V'),    
@@ -22,15 +19,14 @@ properties_list = [
 
         '功率-一分钟有功总平均': ('02 80 00 03', 2, 4, 'kW'),
         '功率因数-总':           ('02 06 00 00', 1, 3, ''), 
-        
+    },
+    {        
         '内部电池电压':          ('02 80 00 08', 2, 2, 'V'),    
 
         '日期':                 ('04 00 01 01', 6, 2, '年月日.星期'),  
-        '时间':                 ('04 00 01 02', 4, 2, 'hhmm.ss'),  
-    
+        '时间':                 ('04 00 01 02', 4, 2, 'hhmm.ss'),      
     },
     {
-
         'B相电压':             ('02 01 02 00', 3, 1, 'V'),    
         'C相电压':             ('02 01 03 00', 3, 1, 'V'),    
 
@@ -70,18 +66,19 @@ properties_list = [
 
 
 class Meter:
-    def __init__(self, chn, addr, level=1):
+    def __init__(self, chn, addr, level=1, verbose=0):
         self.chn = chn
         self.addr = addr
         self.properties = dict(ChainMap(*properties_list[:level]))
+        self.verbose = verbose
         
 
-    def get_data(self, item, verbose = 0):
+    def get_data(self, item):
 
         d = self.properties[item]   
         cmd = [ int(x, 16) for x in d[0].split(' ')[::-1] ]
         self.chn.encode(self.addr, 0x11, cmd)
-        self.chn.xchg_data(verbose)        
+        self.chn.xchg_data(self.verbose)        
         payload = self.chn.rx_payload
 
         len_whole, len_decimal = d[1], d[2]
@@ -133,14 +130,13 @@ class Meter:
 
 class Meters:
     
-    def __init__(self, env):        
-        _s = meter_list_dev if env == 'dev' else meter_list_prod # defined in conf.py
-        self.devices = [ re.findall('[^ ]+', line) for line in _s.strip().splitlines() ]
+    def __init__(self, meter_list_str):        
+        _s = meter_list_str # defined in conf.py
+        self.devices = [ re.findall('[^ ]+', line)[:2] 
+                        for line in _s.strip().splitlines() if not line.startswith('#') ]
+        self.df = pd.DataFrame(self.devices, columns =['Addr','Tag']).set_index('Addr')
     
-    def get_df(self):
-        return pd.DataFrame(self.devices, columns =['Addr','Tag','Model']).set_index('Addr')
-    
-    def read_meters(self, chn, level=2):
+    def read_meters(self, chn, level=2, verbose=0):
         meters = self.devices
         chn.open()
 
@@ -149,7 +145,7 @@ class Meters:
             print('\n', '='* 5, meter, '='* 5)
             addr_human = meter[0]    
             addr = [ int(s,16) for s in re.findall('..', addr_human) ]
-            m = Meter(chn, addr, level)
+            m = Meter(chn, addr, level, verbose)
             rs = m.read_meter()
             pprint.pprint(rs)
             result[addr_human] = rs

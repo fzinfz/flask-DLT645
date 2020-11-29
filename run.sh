@@ -3,7 +3,12 @@ if [ ! -f lib/forked/dlt645.py ]; then
     wget https://raw.githubusercontent.com/glx-technologies/meter-dlt645/master/dlt645.py -P lib/forked
 fi
 
-[ -n "$1" ] && export METER_ENV=$1 || export METER_ENV=prod # 'dev' or 'prod'
+if [ -f lib/conf_prod.py ]; then
+       read -p 'Load lib/conf_prod.py? (y/n) ' a
+	[ "$a" = "y" ] && export METER_ENV=prod || unset METER_ENV
+else
+	unset METER_ENV
+fi
 
 [ -z "$FLASK_ENV" ] && export FLASK_ENV=development
 [ -z "$FLASK_DLT645_PORT" ] && export FLASK_DLT645_PORT=5000
