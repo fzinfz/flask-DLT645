@@ -16,21 +16,38 @@ if 'METER_ENV' in os.environ and os.environ['METER_ENV'] == 'prod':
 else:
     from .lib.conf import *
     print("** lib/conf loaded **")
-       
+
+addr_convert = lambda addr: [ int(s,16) for s in re.findall('..', addr) ]
+
+from flask import Response
+
+def iter_meters():
+    devices = Meters(meter_list_str)
+    for d in devices.devices:
+        addr = d[0] 
+        m = Meter(chn, addr_convert(addr), level=1, verbose=0)
+        yield devices.df.loc[addr]['Tag'], m.read_meter()
+
+# Folowing: https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/#streaming-from-templates
+# but not working on iPad
+
+def stream_template(template_name, **context):
+    app.update_template_context(context)
+    t = app.jinja_env.get_template(template_name)
+    rv = t.stream(context)
+    rv.enable_buffering(5)
+    return rv
+
 @app.route('/')
 @app.route('/meters/')
 def read():
 
-    devices = Meters(meter_list_str)
-    result = devices.read_meters(chn, level=1)
-    
-    for k,v in result.items():
-        v['Addr'] = k, ''
-        v['Tag'] = devices.df.loc[k]['Tag']
+    chn.open()
+    meters = iter_meters()
     
     now = datetime.now(tz).strftime("%Y-%m-%d %X")
     
-    return render_template('meters.html', 
-                           meters=result.values(), 
+    return Response(stream_template('meters.html', 
+                           meters=meters, 
                            now=now
-                          )
+                          ))
