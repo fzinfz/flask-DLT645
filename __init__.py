@@ -11,10 +11,17 @@ else:
     from lib.conf import *
     print("** lib/conf loaded **")
 
+try:
+    from lib.conf_my import *
+    print("** lib/conf_my loaded **")
+except:
+    pass
+
+devices = Meters(meter_list_str)
+    
 addr_convert = lambda addr: [ int(s,16) for s in re.findall('..', addr) ]
 
 def iter_meters():
-    devices = Meters(meter_list_str)
     for d in devices.devices:
         addr = d[0] 
         m = Meter(chn, addr_convert(addr), level=1, verbose=0)

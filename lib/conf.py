@@ -8,3 +8,10 @@ meter_list_str = '''
 
 from forked import dlt645
 chn=dlt645.Channel(port_id = '/dev/ttyUSB1', tmo_cnt = 10, wait_for_read = 0.5)
+
+# [可选] influxdb (OSS V2.0 tested)
+
+influxdb_url="http://192.168.1.72:8086"
+influxdb_token = ""
+influxdb_org = ""
+influxdb_bucket = ""
