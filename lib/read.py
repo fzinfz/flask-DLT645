@@ -139,6 +139,8 @@ class Meters:
     def read_meters(self, chn, level=2, verbose=0):
         meters = self.devices
         chn.open()
+        print(chn.ser)
+        # print('read_meters()', chn.ser.isOpen())
 
         result = {}
         for meter in meters:    

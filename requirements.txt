@@ -1,1 +1,4 @@
+flask
+pandas
+pyserial
 influxdb-client

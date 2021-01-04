@@ -4,7 +4,7 @@ from flask import Flask
 app = Flask(__name__)
 
 # Folowing: https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/#streaming-from-templates
-# but not working on iPad
+# but streaming not working on iPad
 
 from flask import Response
 def stream_template(template_name, **context):

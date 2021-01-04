@@ -1,7 +1,9 @@
-. init.sh
+. ./init.sh
 
 python influxdb.py
 
-echo -e '\n==run "crontab -e" to edit cron jobs==\n'
-crontab -l
-
+which crontab &>/dev/null
+if [ $? -eq 0 ]; then
+    echo -e '\n==run "crontab -e" to edit cron jobs==\n'
+    crontab -l
+fi

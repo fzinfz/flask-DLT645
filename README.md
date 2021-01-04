@@ -18,6 +18,10 @@ DLT645 批量抄表
 
     ./push_to_influxdb.sh # 发送当前度数
 
+# Docker
+
+    ./docker_run.sh
+    docker exec flask-dlt645 bash -c "cd /app && echo y | ./push_to_influxdb.sh"
 
 # 作为库使用
 Demo：[多表](https://nbviewer.jupyter.org/github/fzinfz/scripts/blob/master/python/hw/power_meter_DLT645/multi.ipynb) | 
