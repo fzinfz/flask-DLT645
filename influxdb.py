@@ -12,13 +12,13 @@ chn.open()
 
 def push():
     sequence = []
-    for d in devices.devices:
-        addr = d[0] 
-        m = Meter(chn, addr_convert(addr), level=1, verbose=0)
-        meter_data = m.read_meter()
-        s = f"度数,tag={devices.df.loc[addr]['Tag']} 当前={meter_data['电能-组合有功总-当前'][0]}"
-        print(s)
-        sequence.append(s)
+    for device in devices.devices:
+        address_str = device[0] 
+        meter = Meter(chn, convert_address(address_str), level=1, verbose=0)
+        meter_data = meter.read_meter()
+        line = f"度数,tag={devices.df.loc[address_str]['Tag']} 当前={meter_data['电能-组合有功总-当前'][0]}"
+        print(line)
+        sequence.append(line)
 
     write_api.write(influxdb_bucket, influxdb_org, sequence)
 

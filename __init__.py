@@ -3,14 +3,21 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
 from lib.forked import *
 from lib.read import *
-from lib.conf import *
+
+try:
+    from conf.conf_my import *
+    print("** conf/conf_my loaded **")
+except ImportError:
+    from conf.conf import *
+    print("** conf/conf loaded **")
 
 devices = Meters(meter_list_str)
     
-addr_convert = lambda addr: [ int(s,16) for s in re.findall('..', addr) ]
+def convert_address(address_str):
+    return [ int(byte_str, 16) for byte_str in re.findall('..', address_str) ]
 
-def iter_meters():
-    for d in devices.devices:
-        addr = d[0] 
-        m = Meter(chn, addr_convert(addr), level=1, verbose=0)
-        yield devices.df.loc[addr]['Tag'], m.read_meter()
+def iter_meters(level=1):
+    for device in devices.devices:
+        address_str = device[0] 
+        meter = Meter(chn, convert_address(address_str), level=level, verbose=0)
+        yield devices.df.loc[address_str]['Tag'], meter.read_meter()

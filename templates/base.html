@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+<title>{% block title %}电表{% endblock %}</title>
+<style>
+div.header {
+  display: flex;
+  justify-content: center;
+  position: relative;
+} 
+    
+h1 {
+  margin: 15px;
+}
+
+button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 15px 50px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 22px;
+  position: absolute;
+  right: 0;    
+}
+.home-link {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.home-link a {
+  font-size: 20px;
+  color: #333;
+  text-decoration: none;
+}
+.home-link a:hover {
+  text-decoration: underline;
+}
+</style>
+</head>
+
+<body>
+<div class="header">
+{% block topnav %}{% endblock %}
+<h1 style="color:green;font-size:50px">{{ now }}</h1>
+<button onClick="window.location.reload();">重新读数</button>
+</div>
+
+{% block content %}{% endblock %}
+</body>
+</html>

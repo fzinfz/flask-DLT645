@@ -66,52 +66,53 @@ properties_list = [
 
 
 class Meter:
-    def __init__(self, chn, addr, level=1, verbose=0):
-        self.chn = chn
-        self.addr = addr
+    def __init__(self, channel, address, level=1, verbose=0):
+        self.channel = channel
+        self.address = address
         self.properties = dict(ChainMap(*properties_list[:level]))
         self.verbose = verbose
         
 
     def get_data(self, item):
 
-        d = self.properties[item]   
-        cmd = [ int(x, 16) for x in d[0].split(' ')[::-1] ]
-        self.chn.encode(self.addr, 0x11, cmd)
-        self.chn.xchg_data(self.verbose)        
-        payload = self.chn.rx_payload
+        prop_config = self.properties[item]   
+        cmd = [ int(x, 16) for x in prop_config[0].split(' ')[::-1] ]
+        self.channel.encode(self.address, 0x11, cmd)
+        self.channel.xchg_data(self.verbose)        
+        payload = self.channel.rx_payload
 
-        len_whole, len_decimal = d[1], d[2]
-        len_payload = int( (len_whole + len_decimal) / 2 )
+        integer_digits, decimal_digits = prop_config[1], prop_config[2]
+        payload_length = int( (integer_digits + decimal_digits) / 2 )
 
-        hex_str = ''.join([ "%02x" % x  for x in payload[::-1][:len_payload] ])
+        hex_string = ''.join([ "%02x" % x  for x in payload[::-1][:payload_length] ])
         try:
-            value = int(hex_str) / pow(10, len_decimal)
+            value = int(hex_string) / pow(10, decimal_digits)
         except ValueError:
-            value = hex_str
+            value = hex_string
 
-        unit = d[3]
+        unit = prop_config[3]
         return value, unit
 
 
     def read_meter(self):
         
-        D = self.properties
+        properties = self.properties
         result = {}
 
-        for item in D:
+        for item in properties:
             result[item] = self.get_data(item)
 
-        if len(D) == 1: return result
+        if len(properties) == 1: 
+            return result
 
-        for k, v in D.items():
-            unit = v[3]
+        for key, config in properties.items():
+            unit = config[3]
             if unit == 'kW':
-                result[k] = "{:,.2f}".format( result[k][0] * 1000 ) , 'W'           
+                result[key] = "{:,.2f}".format( result[key][0] * 1000 ) , 'W'           
             if unit == '#':
-                result[k] = "{0:0>12d}".format(int(result[k][0])), ''   
+                result[key] = "{0:0>12d}".format(int(result[key][0])), ''   
             if unit == '分':            
-                result[k] = "{:,.2f}".format( result[k][0] / (60*24) / 365 ), '年'
+                result[key] = "{:,.2f}".format( result[key][0] / (60*24) / 365 ), '年'
 
         try:
             
@@ -130,27 +131,25 @@ class Meter:
 
 class Meters:
     
-    def __init__(self, meter_list_str):        
-        _s = meter_list_str # defined in conf.py
+    def __init__(self, meter_list_string):        
         self.devices = [ re.findall('[^ ]+', line)[:2] 
-                        for line in _s.strip().splitlines() if not line.startswith('#') ]
-        self.df = pd.DataFrame(self.devices, columns =['Addr','Tag']).set_index('Addr')
+                        for line in meter_list_string.strip().splitlines() if not line.startswith('#') ]
+        self.df = pd.DataFrame(self.devices, columns =['Address','Tag']).set_index('Address')
     
-    def read_meters(self, chn, level=2, verbose=0):
+    def read_meters(self, channel, level=2, verbose=0):
         meters = self.devices
-        chn.open()
-        print(chn.ser)
-        # print('read_meters()', chn.ser.isOpen())
+        channel.open()
+        print(channel.ser)
 
         result = {}
         for meter in meters:    
             print('\n', '='* 5, meter, '='* 5)
-            addr_human = meter[0]    
-            addr = [ int(s,16) for s in re.findall('..', addr_human) ]
-            m = Meter(chn, addr, level, verbose)
+            address_str = meter[0]    
+            address = [ int(s,16) for s in re.findall('..', address_str) ]
+            m = Meter(channel, address, level, verbose)
             rs = m.read_meter()
             pprint.pprint(rs)
-            result[addr_human] = rs
+            result[address_str] = rs
 
-        chn.close()    
+        channel.close()    
         return result

@@ -1,43 +1,12 @@
-<!doctype html>
-<title>电表</title>
-<head>     
-   
-<style>
+{% extends "base.html" %}
 
-div {
-  display: flex;
-  justify-content: center;
-  position: relative;
-} 
-    
-h1 {
-  margin: 15px;
-}
+{% block title %}电表{% endblock %}
 
-button {
-  background-color: #4CAF50; /* Green */
-  border: none;
-  color: white;
-  padding: 15px 50px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 22px;
-  position: absolute;
-  right: 0;    
-}     
-    
-</style>
-</head>
-
-<div>
-<h1 style="color:green;font-size:50px">{{ now }}</h1>
-<button onClick="window.location.reload();">重新读数</button>
-</div>
-
-{% for m in meters %}
-<h1 style=font-size:70px>
-    <span style="color:red">{{ m[0] }}</span>: 
-    <span style="color:blue">{{ m[1]['电能-组合有功总-当前'][0] }}度</span>
+{% block content %}
+{% for tag, meter_data in meters %}
+<h1 style="font-size:70px">
+    <span style="color:red">{{ tag }}</span>: 
+    <span style="color:blue">{{ meter_data['电能-组合有功总-当前'][0] }}度</span>
 </h1>
 {% endfor %}
+{% endblock %}

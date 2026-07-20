@@ -1,5 +1,7 @@
+*_my.py
+
+forked/
 lib/init.sh
-lib/forked/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

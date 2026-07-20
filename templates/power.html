@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}功率{% endblock %}
+
+{% block topnav %}
+<div class="home-link"><a href="/">&#127968; 首页</a></div>
+{% endblock %}
+
+{% block content %}
+{% for tag, meter_data in meters %}
+<h1 style="font-size:70px">
+    <span style="color:red">{{ tag }}</span>: 
+    <span style="color:blue">{{ meter_data['功率-瞬时总有功'][0] }}W</span>
+</h1>
+{% endfor %}
+{% endblock %}

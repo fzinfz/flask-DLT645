@@ -1,4 +1,4 @@
-. ./setup.sh
+. ./init.sh
 
 python influxdb.py
 
