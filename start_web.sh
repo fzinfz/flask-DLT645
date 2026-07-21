@@ -1,7 +1,11 @@
+#!/usr/bin/env bash
 . ./init.sh
 
-[ -z "$FLASK_ENV" ] && export FLASK_ENV=development
-[ -z "$FLASK_DLT645_PORT" ] && export FLASK_DLT645_PORT=5000
+# 仅当端口是合法整数时才使用，否则回退（防御脏环境变量）
+if ! [[ "${FLASK_DLT645_PORT:-}" =~ ^[0-9]+$ ]]; then
+  FLASK_DLT645_PORT=5000
+fi
+export FLASK_DLT645_PORT
 
 export PYTHONUNBUFFERED=1
 

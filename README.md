@@ -9,6 +9,10 @@ DLT645 批量抄表
 
     ./start_web.sh # 自行安装uv，或修改.sh
 
+    # 开机运行
+    apt install supervisor 
+    ./scripts/supervisord/setup.sh
+
 ![](https://imgur.com/frgWGHF.png)
 
 3. 打开浏览器，访问以下页面：
