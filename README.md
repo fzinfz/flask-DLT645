@@ -27,7 +27,7 @@ DLT645 批量抄表
 2. 
 
     uv run lib/influxdb2.py --push # 发送当前度数
-    uv run lib/influxdb2.py --pull --range_start=-1h # 拉取历史数据
+    uv run lib/influxdb2.py --pull --range_start=-3d # 拉取历史数据
 
     ./scripts/cron_setup.sh # crontab任务，修改CRON_LINE自定义时间
 
